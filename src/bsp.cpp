@@ -27,14 +27,14 @@ void stop_pwm(void)
 void update_pwm_duty_cycle(double duty_in_ms)
 {
 	FILE *pwmHandle = NULL;
-	double duty_ns = duty_in_ms * 100000;
+	double duty_ns = duty_in_ms * 1000000;
 	double dummy = duty_ns;
 	char str[12];
 	char *pwmDuty_ns   = &(std::string(getenv("MOTORPATH"))+std::string("/pwm0/duty_cycle"))[0u];
 
 	pwmHandle = fopen(pwmDuty_ns,"r+");
 	sprintf(str,"%lf",dummy);
-	fwrite(str,sizeof(char),8,pwmHandle);
+	fwrite(str,sizeof(char),7,pwmHandle);
 	fclose(pwmHandle);
 
 
@@ -42,7 +42,7 @@ void update_pwm_duty_cycle(double duty_in_ms)
 void update_pwm_period_cycle(double period_in_ms)
 {
 	FILE *pwmHandle = NULL;
-	double period_ns = period_in_ms * 100000;
+	double period_ns = period_in_ms * 1000000;
 	double dummy = period_ns;
 	char str[12];
 	char *pwmPeriod_ns = &(std::string(getenv("MOTORPATH"))+std::string("/pwm0/period"))[0u];
@@ -72,8 +72,8 @@ int read_adc(void)
 	adcHandler = fopen(adc0_loc,"r");
 	if(adcHandler == NULL)
 	{
-		fputs("ADC0 not found get rekt",stderr);
-		exit(1);
+		//fputs("ADC0 not found get rekt",stderr);
+		//exit(1);
 	}
 	fseek(adcHandler,0,SEEK_END);
 	lSize = ftell(adcHandler);
@@ -96,5 +96,31 @@ void set_adc(void)
 {
 
 }
+bool read_gpio60_P9_12(void)
+{
+	FILE *gpioHandler;
+	long lSize;
+	char *buffer;
+	char* gpio60_loc = "/sys/class/gpio/gpio60/value";
+	size_t result;
+	gpioHandler = fopen(gpio60_loc,"r");
 
+
+	fseek(gpioHandler,0,SEEK_END);
+	lSize = ftell(gpioHandler);
+	rewind(gpioHandler);
+
+	buffer = (char*)malloc(sizeof(char)*lSize);
+	if(buffer == NULL)
+	{
+		fputs("Memory have some problem, deal with it",stderr);
+		exit(2);
+	}
+	result = fread(buffer,1,lSize,gpioHandler);
+	int value = atoi(buffer);
+	//fputs(buffer,stdout);
+	fclose(gpioHandler);
+	free(buffer);
+	return value ;
+}
 
