@@ -8,6 +8,7 @@
 
 #include "bsp.h"
 #include "TestArm.h"
+#include "hcsr04-demo.c"
 using namespace std;
 
 int main()
@@ -17,11 +18,14 @@ int main()
 	double duty_ms = MOTOR_STARTING_PULSE;
 	int value =0;
 	bool pushButtonState =0;
+	float test =0;
 
 	//SCRIPT d'initialisation du PWM ainsi que de l'adc
 	system("bash init.sh");
 	start_pwm();
+	init_hcsr04();
 	update_pwm(period_ms,duty_ms);
+	test = read_distance();
 	while(!pushButtonState)
 	{
 		pushButtonState = read_gpio60_P9_12();
