@@ -40,6 +40,7 @@
 									<listOptionValue builtIn="false" value="/usr/local/lib"/>
 									<listOptionValue builtIn="false" value="/usr/local/include"/>
 								</option>
+								<option id="gnu.cpp.compiler.option.dialect.std.1987470995" superClass="gnu.cpp.compiler.option.dialect.std" value="gnu.cpp.compiler.dialect.c++11" valueType="enumerated"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.701150308" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.cross.c.linker.561295216" name="Cross GCC Linker" superClass="cdt.managedbuild.tool.gnu.cross.c.linker"/>
@@ -47,7 +48,7 @@
 								<option id="gnu.cpp.link.option.paths.485646965" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="/home/mic/BBB/TestArm/include"/>
 								</option>
-								<option id="gnu.cpp.link.option.flags.531041591" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="-lpthread -lprussdrv " valueType="string"/>
+								<option id="gnu.cpp.link.option.flags.531041591" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="-lpthread -lprussdrv -pthread" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1493307294" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>

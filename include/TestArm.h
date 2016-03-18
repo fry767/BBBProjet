@@ -8,5 +8,6 @@
 #include <sstream>
 #include <cstring>
 #include <string>
+#include <unistd.h>
 
 #endif

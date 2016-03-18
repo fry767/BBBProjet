@@ -7,6 +7,13 @@
  */
 #include "bsp.h"
 
+void init_peripherals(void)
+{
+	//SCRIPT d'initialisation du PWM ainsi que de l'adc
+	system("bash init.sh");
+	start_pwm();
+	init_hcsr04();
+}
 void start_pwm(void)
 {
 	FILE *pwmHandle = NULL;
@@ -27,7 +34,7 @@ void stop_pwm(void)
 void update_pwm_duty_cycle(double duty_in_ms)
 {
 	FILE *pwmHandle = NULL;
-	double duty_ns = duty_in_ms * 1000000;
+	double duty_ns = duty_in_ms * MS_TO_NS_FACTOR;
 	double dummy = duty_ns;
 	char str[12];
 	char *pwmDuty_ns   = &(std::string(getenv("MOTORPATH"))+std::string("/pwm0/duty_cycle"))[0u];
@@ -42,7 +49,7 @@ void update_pwm_duty_cycle(double duty_in_ms)
 void update_pwm_period_cycle(double period_in_ms)
 {
 	FILE *pwmHandle = NULL;
-	double period_ns = period_in_ms * 1000000;
+	double period_ns = period_in_ms * MS_TO_NS_FACTOR;
 	double dummy = period_ns;
 	char str[12];
 	char *pwmPeriod_ns = &(std::string(getenv("MOTORPATH"))+std::string("/pwm0/period"))[0u];
@@ -123,4 +130,31 @@ bool read_gpio60_P9_12(void)
 	free(buffer);
 	return value ;
 }
+void slope_maker(double y1 , double y2 , double x1, double x2,curve_args* parameter)
+{
 
+	parameter->slope = (y2-y1)/(x2-x1);
+	parameter->origin = y1 - x1 * parameter->slope;
+
+
+}
+void first_time_fill_fillter(double *table,curve_args* parameter)
+{
+	for(int i = 0;i < NUMBER_OF_FILTER_ELEMENTS; i++)
+	{
+
+		table[i] = read_adc();
+		table[i]*= parameter->slope;
+		table[i] += parameter->origin;
+	}
+}
+double filter_shifter(double table[])
+{
+	double sum = 0;
+	for(int j =0;j<NUMBER_OF_FILTER_ELEMENTS;j++)
+		sum += table[j];
+
+	for(int i = NUMBER_OF_FILTER_ELEMENTS - 1 ; i > 0;i--)
+		table[i] = table[i-1];
+	return (sum/NUMBER_OF_FILTER_ELEMENTS);
+}

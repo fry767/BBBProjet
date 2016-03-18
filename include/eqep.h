@@ -23,11 +23,13 @@
 
 #include <iostream>
 #include <cstdint>
+#include <stdint.h>
 #include <string>
+#include <inttypes.h>
 
-#define eQEP0 "/sys/devices/ocp.2/48300000.epwmss/48300180.eqep"
-#define eQEP1 "/sys/devices/ocp.2/48302000.epwmss/48302180.eqep"
-#define eQEP2 "/sys/devices/ocp.2/48304000.epwmss/48304180.eqep"
+#define eQEP0 "/sys/devices/platform/ocp/48300000.epwmss/48300180.eqep"
+#define eQEP1 "/sys/devices/platform/ocp/48302000.epwmss/48302180.eqep"
+#define eQEP2 "/sys/devices/platform/ocp/48304000.epwmss/48304180.eqep"
 
 // Class which defines an interface to my eQEP driver
 class eQEP
@@ -42,6 +44,7 @@ public:
         eQEP_Mode_Absolute = 0,
 
         // Relative positioning mode
+		//Pour la vitesse, on utilisera se mode
         eQEP_Mode_Relative = 1,
         
         // Error flag

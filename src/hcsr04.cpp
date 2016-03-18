@@ -1,13 +1,6 @@
 // Standard includes
 // PRUSS interface library
-#include <stdio.h>
-#include <stdlib.h>
-#include <prussdrv.h>
-#include <pruss_intc_mapping.h>
-
-void init_hcsr04(void);
-float read_distance(void);
-
+#include <hcsr04.h>
 void init_hcsr04(void)
 {
 	/* Initialize the PRU */

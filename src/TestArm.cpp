@@ -8,45 +8,81 @@
 
 #include "bsp.h"
 #include "TestArm.h"
-#include "hcsr04-demo.c"
+
 using namespace std;
+void *primary_thread(void *incoming_args);
+
+struct args_struct
+{
+	double period_ms;
+	double duty_ms;
+	double filter[NUMBER_OF_FILTER_ELEMENTS];
+	int value;
+	bool push_button_state;
+	float distance_read_in_meter;
+};
 
 int main()
 {
-	cout << "We are going to control the PWM !!!" << endl;
-	double period_ms = 20;
-	double duty_ms = MOTOR_STARTING_PULSE;
-	int value =0;
-	bool pushButtonState =0;
-	float test =0;
+	cout << "We are going to control the CamCar !!!" << endl;
+	pthread_t thread;
+	void* dummy;
+	struct args_struct args;
+	args.period_ms = MOTOR_PULSE_PERIOD_IN_MS;
+	args.duty_ms = MOTOR_STARTING_PULSE_IN_MS;
+	args.value =0;
+	args.push_button_state=0;
 
-	//SCRIPT d'initialisation du PWM ainsi que de l'adc
-	system("bash init.sh");
-	start_pwm();
-	init_hcsr04();
-	update_pwm(period_ms,duty_ms);
-	test = read_distance();
-	while(!pushButtonState)
+
+	if(pthread_create(&thread,NULL,&primary_thread,(void*)&args))
 	{
-		pushButtonState = read_gpio60_P9_12();
+		cout << "Thread creation failed !!!" << endl;
+				return 1;
 	}
+	usleep(500);
+	pthread_join(thread,&dummy);
+	return 0;
+}
+void *primary_thread(void *incoming_args)
+{
+	args_struct *args = (args_struct *)incoming_args;
+	curve_args curve_param;
+	curve_param.slope =0;
+	curve_param.origin =0;
 
+	init_peripherals();
+	//Initialisation du module hardware pour compter les tours de l'encodeur
+	eQEP eqep(eQEP0,eQEP::eQEP_Mode_Relative);
+
+	//Configuration de la vitesse d'échantillonage
+	eqep.set_period(POLLING_SPEED_IN_MS * MS_TO_NS_FACTOR);
+
+
+	update_pwm(args->period_ms,args->duty_ms);
+
+	slope_maker(Y1,Y2,X1,X2,&curve_param);
+//	args->distance_read_in_meter = read_distance();
+
+	/*while(!args->push_button_state)
+	{
+		args->push_button_state = read_gpio60_P9_12();
+	}*/
+	first_time_fill_fillter(args->filter,&curve_param);
 	while(1)
 	{
 
-		value = read_adc();
-		duty_ms = value;
-		duty_ms *= (1/4096.0);
-		duty_ms += 1;
-		update_pwm(period_ms,duty_ms);
+		args->value = read_adc();
+		args->duty_ms = args->value;
+		args->duty_ms *= curve_param.slope;
+		args->duty_ms += curve_param.origin;
 
+		args->filter[0]=args->duty_ms;
+
+		args->duty_ms = filter_shifter(args->filter);
+		update_pwm(args->period_ms,args->duty_ms);
 	}
-
-
-
 
 	stop_pwm();
 	return 0;
 }
-
 
