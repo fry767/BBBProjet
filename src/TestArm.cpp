@@ -49,13 +49,16 @@ void *primary_thread(void *incoming_args)
 	curve_args curve_param;
 	curve_param.slope =0;
 	curve_param.origin =0;
+	bool direction =0;
 
 	init_peripherals();
 	//Initialisation du module hardware pour compter les tours de l'encodeur
+#ifdef encoder
 	eQEP eqep(eQEP0,eQEP::eQEP_Mode_Relative);
 
 	//Configuration de la vitesse d'échantillonage
 	eqep.set_period(POLLING_SPEED_IN_MS * MS_TO_NS_FACTOR);
+#endif
 
 
 	update_pwm(args->period_ms,args->duty_ms);
@@ -69,7 +72,7 @@ void *primary_thread(void *incoming_args)
 	}*/
 	first_time_fill_fillter(args->filter,&curve_param);
 
-	args->distance_read_in_meter = read_distance();
+	//args->distance_read_in_meter = read_distance();
 	while(1)
 	{
 
@@ -82,7 +85,15 @@ void *primary_thread(void *incoming_args)
 
 		args->duty_ms = filter_shifter(args->filter);
 		update_pwm(args->period_ms,args->duty_ms);
-		args->distance_read_in_meter = read_distance();
+
+		args->push_button_state = read_gpio60_P9_12();
+		if(args->push_button_state)
+		{
+			direction = !direction;
+			set_motor_direction(direction);
+		}
+
+		//args->distance_read_in_meter = read_distance();
 	}
 
 	stop_pwm();

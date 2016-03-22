@@ -12,7 +12,30 @@ void init_peripherals(void)
 	//SCRIPT d'initialisation du PWM ainsi que de l'adc
 	system("bash init.sh");
 	start_pwm();
+	setup_motor_direction_pin();
+#ifdef sensor_distance
 	init_hcsr04();
+#endif
+}
+void setup_motor_direction_pin(void)
+{
+	char* gpio48_loc = "/sys/class/gpio/gpio48/direction";
+	FILE *motorDirectionHandler = NULL;
+	motorDirectionHandler = fopen(gpio48_loc,"r+");
+	fwrite("out",sizeof(char),3,motorDirectionHandler);
+	fclose(motorDirectionHandler);
+
+}
+void set_motor_direction(bool sens)
+{
+	char* gpio48_value = "/sys/class/gpio/gpio48/value";
+	FILE *motorDirectionHandler = NULL;
+	motorDirectionHandler = fopen(gpio48_value,"r+");
+	if(sens)
+		fwrite("1",sizeof(char),1,motorDirectionHandler);
+	else
+		fwrite("0",sizeof(char),1,motorDirectionHandler);
+	fclose(motorDirectionHandler);
 }
 void start_pwm(void)
 {
@@ -43,8 +66,17 @@ void update_pwm_duty_cycle(double duty_in_ms)
 	char *pwmDuty_ns   = &(std::string(getenv("MOTORPATH"))+std::string("/pwm0/duty_cycle"))[0u];
 
 	pwmHandle = fopen(pwmDuty_ns,"r+");
+
 	sprintf(str,"%lf",dummy);
-	fwrite(str,sizeof(char),7,pwmHandle);
+	if(dummy >= 10000 and dummy < 100000)
+		fwrite(str,sizeof(char),5,pwmHandle);
+
+	if(dummy >= 100000 and dummy < 1000000)
+		fwrite(str,sizeof(char),6,pwmHandle);
+
+	if(dummy >= 1000000 and dummy < 10000000)
+		fwrite(str,sizeof(char),7,pwmHandle);
+
 	fclose(pwmHandle);
 
 
@@ -58,8 +90,9 @@ void update_pwm_period_cycle(double period_in_ms)
 	char *pwmPeriod_ns = &(std::string(getenv("MOTORPATH"))+std::string("/pwm0/period"))[0u];
 
 	pwmHandle = fopen(pwmPeriod_ns,"r+");
+
 	sprintf(str,"%lf",dummy);
-	fwrite(str,sizeof(char),8,pwmHandle);
+	fwrite(str,sizeof(char),6,pwmHandle);
 	fclose(pwmHandle);
 
 }
@@ -76,6 +109,7 @@ int read_adc(void)
 	FILE *adcHandler;
 	long lSize;
 	char *buffer;
+	//Pin P9.39
 	char* adc0_loc = getenv("ADC_0_value");;
 	size_t result;
 

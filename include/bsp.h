@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <stdio.h>
+#include <cstdio>
 #include <stdlib.h>
 #include <pthread.h>
 #include <sstream>
@@ -13,16 +14,19 @@
 #include "hcsr04.h"
 
 #define MS_TO_NS_FACTOR					1000000
-#define MOTOR_STARTING_PULSE_IN_MS		1.5
-#define MOTOR_PULSE_PERIOD_IN_MS		20
+#define MOTOR_STARTING_PULSE_IN_MS		0.05
+#define MOTOR_PULSE_PERIOD_IN_MS		0.2
 #define POLLING_SPEED_IN_MS				10
 #define NUMBER_OF_FILTER_ELEMENTS		100
 
 #define X1								0
 #define X2								4096
 
-#define Y1								1
-#define Y2								2
+#define Y1								0.05
+#define Y2								0.2
+
+//#define sensor_distance
+//#define encoder
 
 struct curve_args
 {
@@ -32,6 +36,8 @@ struct curve_args
 
 void init_peripherals(void);
 void start_pwm(void);
+void setup_motor_direction_pin(void);
+void set_motor_direction(bool sens);
 void update_pwm(double period_in_ms,double duty_in_ms);
 void update_pwm_duty_cycle(double duty_in_ms);
 void update_pwm_period_cycle(double period_in_ms);
