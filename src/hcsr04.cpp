@@ -32,18 +32,23 @@ float read_distance(void)
 	/* Get 1000 measurements */
 	printf("Waiting to get the interrupt\n");
 	// Wait for the PRU interrupt to occur
-	prussdrv_pru_wait_event (PRU_EVTOUT_0);
-	prussdrv_pru_clear_event (PRU_EVTOUT_0,PRU0_ARM_INTERRUPT);
-	// Print out the distance received from the sonar (sound takes 58.77 microseconds to travel 1 cm at sea level in dry air)
-	printf("Distance = %f cm\n", (float) pruData[0] / 58.77);
+	int incrementation =0;
+	while(incrementation++<10)
+	{
+		prussdrv_pru_wait_event (PRU_EVTOUT_0);
+		prussdrv_pru_clear_event (PRU_EVTOUT_0,PRU0_ARM_INTERRUPT);
+		// Print out the distance received from the sonar (sound takes 58.77 microseconds to travel 1 cm at sea level in dry air)
+		printf("Distance = %f cm\n", (float) pruData[1] / 58.77);
+	}
+
 
 
 	/* Check if example passed */
 	printf("Executed succesfully.\r\n");
 	/* Disable PRU and close memory mapping*/
-	prussdrv_pru_disable (0);
-	prussdrv_exit ();
-	return (float) pruData[0] / 58.77;
+	//prussdrv_pru_disable (0);
+	//prussdrv_exit ();
+	return ((float) pruData[1] / 58.77);
 
 }
 

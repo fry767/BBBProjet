@@ -30,6 +30,9 @@ void stop_pwm(void)
 	fwrite("0",sizeof(char),1,pwmHandle);
 	fclose(pwmHandle);
 
+	prussdrv_pru_disable (0);
+	prussdrv_exit ();
+
 }
 void update_pwm_duty_cycle(double duty_in_ms)
 {

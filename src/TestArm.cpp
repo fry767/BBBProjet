@@ -68,6 +68,8 @@ void *primary_thread(void *incoming_args)
 		args->push_button_state = read_gpio60_P9_12();
 	}*/
 	first_time_fill_fillter(args->filter,&curve_param);
+
+	args->distance_read_in_meter = read_distance();
 	while(1)
 	{
 
@@ -80,6 +82,7 @@ void *primary_thread(void *incoming_args)
 
 		args->duty_ms = filter_shifter(args->filter);
 		update_pwm(args->period_ms,args->duty_ms);
+		args->distance_read_in_meter = read_distance();
 	}
 
 	stop_pwm();
