@@ -7,6 +7,7 @@
 //============================================================================
 
 #include "bsp.h"
+#include "baborwire.h"
 #include "TestArm.h"
 
 using namespace std;
@@ -14,13 +15,16 @@ void *primary_thread(void *incoming_args);
 
 struct args_struct
 {
-	double period_ms;
-	double duty_ms;
-	double filter[NUMBER_OF_FILTER_ELEMENTS];
-	int value;
-	bool push_button_state;
-	float distance_read_in_meter;
+	void* dumss;
 };
+
+struct shared_data
+{
+	float distance_in_cm;
+	float speed;
+
+};
+uint32_t vitesse;
 
 int main()
 {
@@ -28,10 +32,17 @@ int main()
 	pthread_t thread;
 	void* dummy;
 	struct args_struct args;
-	args.period_ms = MOTOR_PULSE_PERIOD_IN_MS;
-	args.duty_ms = MOTOR_STARTING_PULSE_IN_MS;
-	args.value =0;
-	args.push_button_state=0;
+	pthread_t thread_comm;
+	int rc;
+
+	/* disable stdout buffering */
+	setvbuf(stdout, NULL, _IONBF, 0);
+
+	if ((rc = pthread_create(&thread_comm, NULL, handler_comm, NULL)))
+	{
+	      fprintf(stderr, "error: pthread_create, rc: %d\n", rc);
+	      return EXIT_FAILURE;
+	}
 
 
 	if(pthread_create(&thread,NULL,&primary_thread,(void*)&args))
@@ -41,14 +52,22 @@ int main()
 	}
 	usleep(500);
 	pthread_join(thread,&dummy);
+	pthread_join(thread_comm, NULL);
 	return 0;
 }
 void *primary_thread(void *incoming_args)
 {
 	args_struct *args = (args_struct *)incoming_args;
 	curve_args curve_param;
+	shared_data shared;
 	curve_param.slope =0;
 	curve_param.origin =0;
+	double period_ms = MOTOR_PULSE_PERIOD_IN_MS;
+	double duty_ms = MOTOR_STARTING_PULSE_IN_MS;
+	double filter[NUMBER_OF_FILTER_ELEMENTS];
+	int value=0;
+	bool push_button_state=0;
+	float distance_read_in_meter=0;
 	bool direction =0;
 
 	init_peripherals();
@@ -61,7 +80,7 @@ void *primary_thread(void *incoming_args)
 #endif
 
 
-	update_pwm(args->period_ms,args->duty_ms);
+	update_pwm(period_ms,duty_ms);
 
 	slope_maker(Y1,Y2,X1,X2,&curve_param);
 //	args->distance_read_in_meter = read_distance();
@@ -70,30 +89,34 @@ void *primary_thread(void *incoming_args)
 	{
 		args->push_button_state = read_gpio60_P9_12();
 	}*/
-	first_time_fill_fillter(args->filter,&curve_param);
+	first_time_fill_fillter(filter,&curve_param);
 
 	//args->distance_read_in_meter = read_distance();
 	while(1)
 	{
 
-		args->value = read_adc();
-		args->duty_ms = args->value;
-		args->duty_ms *= curve_param.slope;
-		args->duty_ms += curve_param.origin;
+		//value = read_adc();
 
-		args->filter[0]=args->duty_ms;
+		duty_ms = vitesse;
 
-		args->duty_ms = filter_shifter(args->filter);
-		update_pwm(args->period_ms,args->duty_ms);
+		duty_ms *= curve_param.slope;
+		duty_ms += curve_param.origin;
 
-		args->push_button_state = read_gpio60_P9_12();
-		if(args->push_button_state)
+		filter[0]=duty_ms;
+
+		duty_ms = filter_shifter(filter);
+		printf("vit : %f\n",duty_ms);
+		update_pwm(period_ms,duty_ms);
+
+		push_button_state = read_gpio60_P9_12();
+		if(push_button_state)
 		{
 			direction = !direction;
 			set_motor_direction(direction);
 		}
-
-		//args->distance_read_in_meter = read_distance();
+#ifdef sensor_distance
+		distance_read_in_meter = read_distance();
+#endif
 	}
 
 	stop_pwm();

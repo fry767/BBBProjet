@@ -33,7 +33,7 @@ float read_distance(void)
 	printf("Waiting to get the interrupt\n");
 	// Wait for the PRU interrupt to occur
 	int incrementation =0;
-	while(incrementation++<10)
+	while(incrementation++<100)
 	{
 		prussdrv_pru_wait_event (PRU_EVTOUT_0);
 		prussdrv_pru_clear_event (PRU_EVTOUT_0,PRU0_ARM_INTERRUPT);
