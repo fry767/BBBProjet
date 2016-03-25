@@ -6,7 +6,36 @@
  *      Author: root
  */
 #include "bsp.h"
+#include <math.h>
+#define a	-3.164
+#define b	-0.0273
+#define h 	-146.2
+#define k	111
+#define exp	M_E
+#define critical_distance 100
 
+double speed_regulator(double speed,double distance)
+{
+	double return_speed =0;
+	if(distance <= critical_distance)
+	{
+		if(speed > 0 )
+		{
+			return_speed = a*(pow(exp,b*(distance+h)))+k;
+
+		}else
+		{
+			return_speed = -a*(pow(exp,b*(distance+h)))-k;
+		}
+	}else
+	{
+		return_speed = speed;
+	}
+
+	return return_speed;
+
+
+}
 void init_peripherals(void)
 {
 	//SCRIPT d'initialisation du PWM ainsi que de l'adc
@@ -104,7 +133,7 @@ void update_pwm(double period_in_ms,double duty_in_ms)
 		update_pwm_duty_cycle(duty_in_ms);
 		//start_pwm();
 }
-int read_adc(void)
+double read_adc(void)
 {
 	FILE *adcHandler;
 	long lSize;
@@ -130,7 +159,7 @@ int read_adc(void)
 		exit(2);
 	}
 	result = fread(buffer,1,lSize,adcHandler);
-	int value = atoi(buffer);
+	double value = atoi(buffer);
 //	fputs(buffer,stdout);
 	fclose(adcHandler);
 	free(buffer);
@@ -175,23 +204,23 @@ void slope_maker(double y1 , double y2 , double x1, double x2,curve_args* parame
 
 
 }
-void first_time_fill_fillter(double *table,curve_args* parameter)
+void first_time_fill_filter(double *table,curve_args* parameter,fill_filter_fct fill,double nb_element)
 {
-	for(int i = 0;i < NUMBER_OF_FILTER_ELEMENTS; i++)
+	for(int i = 0;i < nb_element; i++)
 	{
 
-		table[i] = read_adc();
+		table[i] = fill();
 		table[i]*= parameter->slope;
 		table[i] += parameter->origin;
 	}
 }
-double filter_shifter(double table[])
+double filter_shifter(double table[],double nb_element)
 {
 	double sum = 0;
-	for(int j =0;j<NUMBER_OF_FILTER_ELEMENTS;j++)
+	for(int j =0;j<nb_element;j++)
 		sum += table[j];
 
-	for(int i = NUMBER_OF_FILTER_ELEMENTS - 1 ; i > 0;i--)
+	for(int i = nb_element - 1 ; i > 0;i--)
 		table[i] = table[i-1];
-	return (sum/NUMBER_OF_FILTER_ELEMENTS);
+	return (sum/nb_element);
 }

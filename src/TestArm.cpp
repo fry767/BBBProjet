@@ -26,15 +26,17 @@ struct shared_data
 };
 uint32_t vitesse;
 
+
 int main()
 {
 	cout << "We are going to control the CamCar !!!" << endl;
 	pthread_t thread;
 	void* dummy;
 	struct args_struct args;
+
+#ifdef comm
 	pthread_t thread_comm;
 	int rc;
-
 	/* disable stdout buffering */
 	setvbuf(stdout, NULL, _IONBF, 0);
 
@@ -43,8 +45,7 @@ int main()
 	      fprintf(stderr, "error: pthread_create, rc: %d\n", rc);
 	      return EXIT_FAILURE;
 	}
-
-
+#endif
 	if(pthread_create(&thread,NULL,&primary_thread,(void*)&args))
 	{
 		cout << "Thread creation failed !!!" << endl;
@@ -52,22 +53,35 @@ int main()
 	}
 	usleep(500);
 	pthread_join(thread,&dummy);
+#ifdef comm
 	pthread_join(thread_comm, NULL);
+
+#endif
 	return 0;
 }
+
 void *primary_thread(void *incoming_args)
 {
 	args_struct *args = (args_struct *)incoming_args;
 	curve_args curve_param;
+	curve_args distance_modifier;
+	curve_args test_adc_speed_modifier;
 	shared_data shared;
+	test_adc_speed_modifier.slope=0;
+	test_adc_speed_modifier.origin=0;
 	curve_param.slope =0;
 	curve_param.origin =0;
+	distance_modifier.slope=1;
+	distance_modifier.origin=0;
+
+	double vitesse_locale=0;
 	double period_ms = MOTOR_PULSE_PERIOD_IN_MS;
 	double duty_ms = MOTOR_STARTING_PULSE_IN_MS;
 	double filter[NUMBER_OF_FILTER_ELEMENTS];
+	double distance_sensor_filter[NUMBER_OF_DISTANCE_ELEMENTS];
 	int value=0;
 	bool push_button_state=0;
-	float distance_read_in_meter=0;
+	float distance_read_in_cm=0;
 	bool direction =0;
 
 	init_peripherals();
@@ -83,40 +97,56 @@ void *primary_thread(void *incoming_args)
 	update_pwm(period_ms,duty_ms);
 
 	slope_maker(Y1,Y2,X1,X2,&curve_param);
-//	args->distance_read_in_meter = read_distance();
 
-	/*while(!args->push_button_state)
-	{
-		args->push_button_state = read_gpio60_P9_12();
-	}*/
-	first_time_fill_fillter(filter,&curve_param);
+#ifdef test_adc_speed
+	double test_adc_speed_table[NUMBER_OF_FILTER_ELEMENTS];
+	slope_maker(V1,V2,A1,A2,&test_adc_speed_modifier);
+	first_time_fill_filter(test_adc_speed_table,&test_adc_speed_modifier,read_adc,NUMBER_OF_FILTER_ELEMENTS);
+#endif
 
-	//args->distance_read_in_meter = read_distance();
+
+
+
+#ifdef sensor_distance
+	first_time_fill_filter(distance_sensor_filter,&distance_modifier,read_distance,NUMBER_OF_DISTANCE_ELEMENTS);
+#endif
+
+
+
 	while(1)
 	{
+#ifdef sensor_distance
+		distance_sensor_filter[0]=read_distance();
+		distance_read_in_cm = filter_shifter(distance_sensor_filter,NUMBER_OF_DISTANCE_ELEMENTS);
+		printf("Prochain objet = %f cm   ",distance_read_in_cm);
+#endif
+		vitesse = read_adc();
+		vitesse *= test_adc_speed_modifier.slope;
+		vitesse += test_adc_speed_modifier.origin;
 
-		//value = read_adc();
-
-		duty_ms = vitesse;
-
+		vitesse_locale = vitesse;
+		vitesse_locale = speed_regulator(vitesse_locale,distance_read_in_cm);
+		printf("Vitesse Régulée = %f  ",vitesse_locale);
+		duty_ms = vitesse_locale;
 		duty_ms *= curve_param.slope;
 		duty_ms += curve_param.origin;
 
 		filter[0]=duty_ms;
 
-		duty_ms = filter_shifter(filter);
-		printf("vit : %f\n",duty_ms);
+
+		duty_ms = filter_shifter(filter,NUMBER_OF_FILTER_ELEMENTS);
+		printf("Duty cycle : %f\n",duty_ms);
 		update_pwm(period_ms,duty_ms);
 
 		push_button_state = read_gpio60_P9_12();
+#ifdef change_direction_with_push_button
 		if(push_button_state)
 		{
 			direction = !direction;
 			set_motor_direction(direction);
 		}
-#ifdef sensor_distance
-		distance_read_in_meter = read_distance();
 #endif
+
 	}
 
 	stop_pwm();

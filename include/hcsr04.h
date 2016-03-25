@@ -9,6 +9,8 @@
 #include <pruss_intc_mapping.h>
 
 void init_hcsr04(void);
-float read_distance(void);
+double read_distance(void);
+
+
 
 #endif

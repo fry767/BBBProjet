@@ -10,7 +10,7 @@
 #include <syslog.h>
 #include <time.h>
 #include <pthread.h>
-#include "../../include/baborwire.h"
+#include "../include/baborwire.h"
 
 #define PORT_NUM_APP    9202
 #define SERV_IP_ADDR    "192.168.49.33"
