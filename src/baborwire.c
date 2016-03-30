@@ -132,30 +132,30 @@ void *handler_comm(void *arg)
 					switch (command_id) {
 						case 0x01: // (input) Longeur du câble
 							//print(LOG_INFO, "Command #%d received!", command_id);
-							print(LOG_INFO, "Cable Length = %d", data);
+							//print(LOG_INFO, "Cable Length = %d", data);
 							break;
 						case 0x02: // (input) Vitesse
 							//print(LOG_INFO, "Command #%d received!", command_id);
-							printf("Vitesse = %.3d Km/h\r", data);
+							//printf("Vitesse = %.3d Km/h\r", data);
 							vitesse = data;
 							break;
 						case 0x03: // (output) Temperature de la batterie
-							print(LOG_INFO, "Command #%d received!", command_id);
+							//print(LOG_INFO, "Command #%d received!", command_id);
 							add_data(buffer, 0x03);
 							send(sockfd_client_app, &buffer, 7, 0);
 							break;
 						case 0x04: // (output) Charge de la batterie
-							print(LOG_INFO, "Command #%d received!", command_id);
+							//print(LOG_INFO, "Command #%d received!", command_id);
 							add_data(buffer, 0x04);
 							send(sockfd_client_app, &buffer, 7, 0);
 							break;
 						case 0x05: // (output) Position du charriot
-							print(LOG_INFO, "Command #%d received!", command_id);
+							//print(LOG_INFO, "Command #%d received!", command_id);
 							add_data(buffer, 0x05);
 							send(sockfd_client_app, &buffer, 7, 0);
 							break;
 						case 0x06: // (output) Vitesse réelle
-							print(LOG_INFO, "Command #%d received!", command_id);
+							//print(LOG_INFO, "Command #%d received!", command_id);
 							add_data(buffer, 0x06);
 							send(sockfd_client_app, &buffer, 7, 0);
 							break;

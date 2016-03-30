@@ -96,26 +96,16 @@ void update_pwm_duty_cycle(double duty_in_ms)
 	double duty_ns = duty_in_ms * MS_TO_NS_FACTOR;
 	double dummy = duty_ns;
 	char str[12];
+	int number_of_bytes_to_write = 0;
+
 	char *pwmDuty_ns   = &(std::string(getenv("MOTORPATH"))+std::string("/pwm0/duty_cycle"))[0u];
 
 	pwmHandle = fopen(pwmDuty_ns,"r+");
 
-	sprintf(str,"%lf",dummy);
-	if(dummy >= 1 and dummy < 10)
-		fwrite(str,sizeof(char),1,pwmHandle);
-	if(dummy >= 10 and dummy < 100)
-		fwrite(str,sizeof(char),2,pwmHandle);
-	if(dummy >= 100 and dummy < 1000)
-		fwrite(str,sizeof(char),3,pwmHandle);
-	if(dummy >= 1000 and dummy < 10000)
-		fwrite(str,sizeof(char),4,pwmHandle);
-	if(dummy >= 10000 and dummy < 100000)
-		fwrite(str,sizeof(char),5,pwmHandle);
-	if(dummy >= 100000 and dummy < 1000000)
-		fwrite(str,sizeof(char),6,pwmHandle);
+	number_of_bytes_to_write = sprintf(str,"%.0lf",dummy);
 
-	if(dummy >= 1000000 and dummy < 10000000)
-		fwrite(str,sizeof(char),7,pwmHandle);
+	fwrite(str,sizeof(char),number_of_bytes_to_write,pwmHandle);
+
 
 	fclose(pwmHandle);
 
@@ -128,11 +118,12 @@ void update_pwm_period_cycle(double period_in_ms)
 	double dummy = period_ns;
 	char str[12];
 	char *pwmPeriod_ns = &(std::string(getenv("MOTORPATH"))+std::string("/pwm0/period"))[0u];
+	int number_of_bytes_to_write = 0;
 
 	pwmHandle = fopen(pwmPeriod_ns,"r+");
 
-	sprintf(str,"%lf",dummy);
-	fwrite(str,sizeof(char),6,pwmHandle);
+	number_of_bytes_to_write = sprintf(str,"%lf",dummy);
+	fwrite(str,sizeof(char),number_of_bytes_to_write,pwmHandle);
 	fclose(pwmHandle);
 
 }

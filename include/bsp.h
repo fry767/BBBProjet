@@ -14,11 +14,14 @@
 #include "hcsr04.h"
 
 #define MS_TO_NS_FACTOR					1000000
-#define MOTOR_STARTING_PULSE_IN_MS		0.05
+#define MOTOR_STARTING_PULSE_IN_MS		0.1/1000
 #define MOTOR_PULSE_PERIOD_IN_MS		0.2
-#define POLLING_SPEED_IN_MS				10
+#define POLLING_SPEED_IN_MS				100
 #define NUMBER_OF_FILTER_ELEMENTS		10
 #define NUMBER_OF_DISTANCE_ELEMENTS		5
+
+#define incomming_v1					0
+#define incomming_v2					200
 
 #define X1								0
 #define X2								100
@@ -36,7 +39,7 @@
 //#define test_adc_speed
 #define change_direction_with_push_button
 //#define encoder
-//#define comm
+#define comm
 
 struct curve_args
 {
