@@ -17,6 +17,10 @@
 double speed_regulator(double speed,double distance)
 {
 	double return_speed =0;
+	if(distance == 0)
+	{
+		return speed;
+	}
 	if(distance <= critical_distance)
 	{
 		if(speed > 0 )
@@ -97,9 +101,16 @@ void update_pwm_duty_cycle(double duty_in_ms)
 	pwmHandle = fopen(pwmDuty_ns,"r+");
 
 	sprintf(str,"%lf",dummy);
+	if(dummy >= 1 and dummy < 10)
+		fwrite(str,sizeof(char),1,pwmHandle);
+	if(dummy >= 10 and dummy < 100)
+		fwrite(str,sizeof(char),2,pwmHandle);
+	if(dummy >= 100 and dummy < 1000)
+		fwrite(str,sizeof(char),3,pwmHandle);
+	if(dummy >= 1000 and dummy < 10000)
+		fwrite(str,sizeof(char),4,pwmHandle);
 	if(dummy >= 10000 and dummy < 100000)
 		fwrite(str,sizeof(char),5,pwmHandle);
-
 	if(dummy >= 100000 and dummy < 1000000)
 		fwrite(str,sizeof(char),6,pwmHandle);
 

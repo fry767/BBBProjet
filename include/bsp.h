@@ -23,7 +23,7 @@
 #define X1								0
 #define X2								100
 
-#define Y1								0.05
+#define Y1								0.1/1000
 #define Y2								0.2
 
 #define V1								-100
@@ -32,8 +32,8 @@
 #define A1								0
 #define A2								2585
 
-#define sensor_distance
-#define test_adc_speed
+//#define sensor_distance
+//#define test_adc_speed
 #define change_direction_with_push_button
 //#define encoder
 //#define comm

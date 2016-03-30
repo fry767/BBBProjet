@@ -120,22 +120,32 @@ void *primary_thread(void *incoming_args)
 		distance_read_in_cm = filter_shifter(distance_sensor_filter,NUMBER_OF_DISTANCE_ELEMENTS);
 		printf("Prochain objet = %f cm   ",distance_read_in_cm);
 #endif
-		vitesse = read_adc();
-		vitesse *= test_adc_speed_modifier.slope;
-		vitesse += test_adc_speed_modifier.origin;
+#ifdef test_adc_speed
+		vitesse_locale = read_adc();
 
-		vitesse_locale = vitesse;
+		vitesse_locale *= test_adc_speed_modifier.slope;
+
+		vitesse_locale += test_adc_speed_modifier.origin;
+#endif
+
 		vitesse_locale = speed_regulator(vitesse_locale,distance_read_in_cm);
-		printf("Vitesse Régulée = %f  ",vitesse_locale);
+		direction = 0;
+		if(vitesse_locale < 0)
+		{
+			vitesse_locale = -vitesse_locale;
+			direction = 1;
+		}
 		duty_ms = vitesse_locale;
 		duty_ms *= curve_param.slope;
 		duty_ms += curve_param.origin;
+
 
 		filter[0]=duty_ms;
 
 
 		duty_ms = filter_shifter(filter,NUMBER_OF_FILTER_ELEMENTS);
-		printf("Duty cycle : %f\n",duty_ms);
+		//printf("Direction = %d  ",direction);
+		//printf("Duty cycle : %f\n",duty_ms);
 		update_pwm(period_ms,duty_ms);
 
 		push_button_state = read_gpio60_P9_12();
