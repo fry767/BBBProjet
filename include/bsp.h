@@ -12,6 +12,7 @@
 #include <string>
 #include "eqep.h"
 #include "hcsr04.h"
+#include "lm74_drv.h";
 
 #define MS_TO_NS_FACTOR					1000000
 #define MOTOR_STARTING_PULSE_IN_MS		0.05

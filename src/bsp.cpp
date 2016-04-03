@@ -46,6 +46,7 @@ void init_peripherals(void)
 	system("bash init.sh");
 	start_pwm();
 	setup_motor_direction_pin();
+	lm74_init();
 #ifdef sensor_distance
 	init_hcsr04();
 #endif

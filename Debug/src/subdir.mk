@@ -10,14 +10,16 @@ CPP_SRCS += \
 ../src/TestArm.cpp \
 ../src/bsp.cpp \
 ../src/eqep.cpp \
-../src/hcsr04.cpp 
+../src/hcsr04.cpp \
+../src/lm74_drv.cpp 
 
 OBJS += \
 ./src/TestArm.o \
 ./src/baborwire.o \
 ./src/bsp.o \
 ./src/eqep.o \
-./src/hcsr04.o 
+./src/hcsr04.o \
+./src/lm74_drv.o 
 
 C_DEPS += \
 ./src/baborwire.d 
@@ -26,7 +28,8 @@ CPP_DEPS += \
 ./src/TestArm.d \
 ./src/bsp.d \
 ./src/eqep.d \
-./src/hcsr04.d 
+./src/hcsr04.d \
+./src/lm74_drv.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

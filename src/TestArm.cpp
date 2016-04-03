@@ -9,7 +9,7 @@
 #include "bsp.h"
 #include "baborwire.h"
 #include "TestArm.h"
-
+#include "lm74_drv.h"
 using namespace std;
 void *primary_thread(void *incoming_args);
 
@@ -115,6 +115,7 @@ void *primary_thread(void *incoming_args)
 
 	while(1)
 	{
+		read_temperature();
 #ifdef sensor_distance
 		distance_sensor_filter[0]=read_distance();
 		distance_read_in_cm = filter_shifter(distance_sensor_filter,NUMBER_OF_DISTANCE_ELEMENTS);
