@@ -44,7 +44,7 @@ all: TestArm
 TestArm: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: Cross G++ Linker'
-	arm-linux-gnueabihf-g++ -L/home/mic/BBB/TestArm/include -lpthread -lprussdrv -pthread -o "TestArm" $(OBJS) $(USER_OBJS) $(LIBS)
+	arm-linux-gnueabihf-g++ -L/home/mic/BBB/BBBProjet/include -lpthread -lprussdrv -pthread -o "TestArm" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build

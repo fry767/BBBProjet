@@ -12,7 +12,7 @@
 #include "lm74_drv.h"
 using namespace std;
 void *primary_thread(void *incoming_args);
-
+double apply_mod(double value,curve_args *mod);
 struct args_struct
 {
 	void* dumss;
@@ -24,7 +24,7 @@ struct shared_data
 	float speed;
 
 };
-uint32_t vitesse;
+uint32_t vitesse = 100;
 
 
 int main()
@@ -66,6 +66,7 @@ void *primary_thread(void *incoming_args)
 	curve_args curve_param;
 	curve_args distance_modifier;
 	curve_args test_adc_speed_modifier;
+	curve_args incomming_speed_modifier;
 	shared_data shared;
 	test_adc_speed_modifier.slope=0;
 	test_adc_speed_modifier.origin=0;
@@ -73,7 +74,10 @@ void *primary_thread(void *incoming_args)
 	curve_param.origin =0;
 	distance_modifier.slope=1;
 	distance_modifier.origin=0;
+	incomming_speed_modifier.slope = 0;
+	incomming_speed_modifier.origin= 0;
 
+	int32_t lecture_encoder=0;
 	double vitesse_locale=0;
 	double period_ms = MOTOR_PULSE_PERIOD_IN_MS;
 	double duty_ms = MOTOR_STARTING_PULSE_IN_MS;
@@ -85,6 +89,12 @@ void *primary_thread(void *incoming_args)
 	bool direction =0;
 
 	init_peripherals();
+
+	update_pwm(period_ms,duty_ms);
+
+	slope_maker(Y1,Y2,X1,X2,&curve_param);
+	slope_maker(V1,V2,incomming_v1,incomming_v2,&incomming_speed_modifier);
+
 	//Initialisation du module hardware pour compter les tours de l'encodeur
 #ifdef encoder
 	eQEP eqep(eQEP0,eQEP::eQEP_Mode_Relative);
@@ -94,9 +104,7 @@ void *primary_thread(void *incoming_args)
 #endif
 
 
-	update_pwm(period_ms,duty_ms);
 
-	slope_maker(Y1,Y2,X1,X2,&curve_param);
 
 #ifdef test_adc_speed
 	double test_adc_speed_table[NUMBER_OF_FILTER_ELEMENTS];
@@ -115,18 +123,31 @@ void *primary_thread(void *incoming_args)
 
 	while(1)
 	{
+<<<<<<< HEAD
 		read_temperature();
+=======
+#ifdef encoder
+		lecture_encoder = eqep.get_position(false);
+		printf("Vitesse mesurée = %d ",lecture_encoder);
+#endif
+
+		vitesse_locale = vitesse;
+		vitesse_locale = apply_mod(vitesse_locale,&incomming_speed_modifier);
+		printf("Vitesse reçu = %f ",vitesse_locale);
+
+>>>>>>> 95eba6b3933cc6a8bc8518e87bcd9f010d498891
 #ifdef sensor_distance
 		distance_sensor_filter[0]=read_distance();
 		distance_read_in_cm = filter_shifter(distance_sensor_filter,NUMBER_OF_DISTANCE_ELEMENTS);
 		printf("Prochain objet = %f cm   ",distance_read_in_cm);
 #endif
+
 #ifdef test_adc_speed
 		vitesse_locale = read_adc();
+		vitesse_locale = apply_mod(vitesse_locale,&test_adc_speed_modifier);
+		/*vitesse_locale *= test_adc_speed_modifier.slope;
 
-		vitesse_locale *= test_adc_speed_modifier.slope;
-
-		vitesse_locale += test_adc_speed_modifier.origin;
+		vitesse_locale += test_adc_speed_modifier.origin;*/
 #endif
 
 		vitesse_locale = speed_regulator(vitesse_locale,distance_read_in_cm);
@@ -137,16 +158,17 @@ void *primary_thread(void *incoming_args)
 			direction = 1;
 		}
 		duty_ms = vitesse_locale;
-		duty_ms *= curve_param.slope;
-		duty_ms += curve_param.origin;
+		duty_ms = apply_mod(duty_ms,&curve_param);
+		/*duty_ms *= curve_param.slope;
+		duty_ms += curve_param.origin;*/
 
 
 		filter[0]=duty_ms;
 
 
 		duty_ms = filter_shifter(filter,NUMBER_OF_FILTER_ELEMENTS);
-		//printf("Direction = %d  ",direction);
-		//printf("Duty cycle : %f\n",duty_ms);
+		printf("Direction = %d  ",direction);
+		printf("Duty cycle : %f\n",duty_ms);
 		update_pwm(period_ms,duty_ms);
 
 		push_button_state = read_gpio60_P9_12();
@@ -163,4 +185,10 @@ void *primary_thread(void *incoming_args)
 	stop_pwm();
 	return 0;
 }
+double apply_mod(double value,curve_args *mod)
+{
+	value *= mod->slope;
+	value += mod->origin;
+	return value;
 
+}
