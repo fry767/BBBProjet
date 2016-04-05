@@ -64,9 +64,10 @@ int main()
 void *primary_thread(void *incoming_args)
 {
 	args_struct *args = (args_struct *)incoming_args;
-	curve_args curve_param;
 
+	curve_args curve_param;
 	curve_args incomming_speed_modifier;
+
 	shared_data shared;
 
 	curve_param.slope =0;
@@ -82,10 +83,11 @@ void *primary_thread(void *incoming_args)
 	double duty_ms = MOTOR_STARTING_PULSE_IN_MS;
 	double filter[NUMBER_OF_FILTER_ELEMENTS];
 
+	float distance_read_in_cm=0;
 
 	int value=0;
+
 	bool push_button_state=0;
-	float distance_read_in_cm=0;
 	bool direction =0;
 
 	init_peripherals();
