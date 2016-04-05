@@ -1,24 +1,20 @@
 src/bsp.o: ../src/bsp.cpp /home/mic/BBB/TestArm/include/bsp.h \
  /home/mic/BBB/TestArm/include/eqep.h \
-<<<<<<< HEAD
  /home/mic/BBB/TestArm/include/hcsr04.h /usr/local/include/prussdrv.h \
  /usr/local/include/pruss_intc_mapping.h \
- /home/mic/BBB/TestArm/include/lm74_drv.h
-=======
- /home/mic/BBB/TestArm/include/hcsr04.h
->>>>>>> 95eba6b3933cc6a8bc8518e87bcd9f010d498891
+ /home/mic/BBB/TestArm/include/lm74_drv.h \
+ /home/mic/BBB/TestArm/include/encoder_pru_drv.h
 
 /home/mic/BBB/TestArm/include/bsp.h:
 
 /home/mic/BBB/TestArm/include/eqep.h:
 
 /home/mic/BBB/TestArm/include/hcsr04.h:
-<<<<<<< HEAD
 
 /usr/local/include/prussdrv.h:
 
 /usr/local/include/pruss_intc_mapping.h:
 
 /home/mic/BBB/TestArm/include/lm74_drv.h:
-=======
->>>>>>> 95eba6b3933cc6a8bc8518e87bcd9f010d498891
+
+/home/mic/BBB/TestArm/include/encoder_pru_drv.h:

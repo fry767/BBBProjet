@@ -10,6 +10,7 @@
 #include "baborwire.h"
 #include "TestArm.h"
 #include "lm74_drv.h"
+#include "encoder_pru_drv.h"
 using namespace std;
 void *primary_thread(void *incoming_args);
 double apply_mod(double value,curve_args *mod);
@@ -64,25 +65,24 @@ void *primary_thread(void *incoming_args)
 {
 	args_struct *args = (args_struct *)incoming_args;
 	curve_args curve_param;
-	curve_args distance_modifier;
-	curve_args test_adc_speed_modifier;
+
 	curve_args incomming_speed_modifier;
 	shared_data shared;
-	test_adc_speed_modifier.slope=0;
-	test_adc_speed_modifier.origin=0;
+
 	curve_param.slope =0;
 	curve_param.origin =0;
-	distance_modifier.slope=1;
-	distance_modifier.origin=0;
+
 	incomming_speed_modifier.slope = 0;
 	incomming_speed_modifier.origin= 0;
 
-	int32_t lecture_encoder=0;
+
 	double vitesse_locale=0;
+	double vitesse_mesure=0;
 	double period_ms = MOTOR_PULSE_PERIOD_IN_MS;
 	double duty_ms = MOTOR_STARTING_PULSE_IN_MS;
 	double filter[NUMBER_OF_FILTER_ELEMENTS];
-	double distance_sensor_filter[NUMBER_OF_DISTANCE_ELEMENTS];
+
+
 	int value=0;
 	bool push_button_state=0;
 	float distance_read_in_cm=0;
@@ -97,6 +97,7 @@ void *primary_thread(void *incoming_args)
 
 	//Initialisation du module hardware pour compter les tours de l'encodeur
 #ifdef encoder
+	int32_t lecture_encoder=0;
 	eQEP eqep(eQEP0,eQEP::eQEP_Mode_Relative);
 
 	//Configuration de la vitesse d'échantillonage
@@ -108,6 +109,9 @@ void *primary_thread(void *incoming_args)
 
 #ifdef test_adc_speed
 	double test_adc_speed_table[NUMBER_OF_FILTER_ELEMENTS];
+	curve_args test_adc_speed_modifier;
+	test_adc_speed_modifier.slope=0;
+	test_adc_speed_modifier.origin=0;
 	slope_maker(V1,V2,A1,A2,&test_adc_speed_modifier);
 	first_time_fill_filter(test_adc_speed_table,&test_adc_speed_modifier,read_adc,NUMBER_OF_FILTER_ELEMENTS);
 #endif
@@ -116,16 +120,32 @@ void *primary_thread(void *incoming_args)
 
 
 #ifdef sensor_distance
+	double distance_sensor_filter[NUMBER_OF_DISTANCE_ELEMENTS];
+	curve_args distance_modifier;
+	distance_modifier.slope=1;
+	distance_modifier.origin=0;
 	first_time_fill_filter(distance_sensor_filter,&distance_modifier,read_distance,NUMBER_OF_DISTANCE_ELEMENTS);
 #endif
 
-
+#ifdef encoder_pru
+	double linear_speed_filter[NUMBER_OF_DISTANCE_ELEMENTS];
+	curve_args linear_speed_mod;
+	linear_speed_mod.slope = 1;
+	linear_speed_mod.origin=0;
+	first_time_fill_filter(linear_speed_filter,&linear_speed_mod,read_linear_speed,NUMBER_OF_DISTANCE_ELEMENTS);
+#endif
 
 	while(1)
 	{
-<<<<<<< HEAD
+#ifdef encoder_pru
+		linear_speed_filter[0] = read_linear_speed();
+		vitesse_mesure = filter_shifter(linear_speed_filter,NUMBER_OF_DISTANCE_ELEMENTS);
+		printf("Vitesse mesurée = %f \n",vitesse_mesure);
+#endif
+#ifdef temperature_sens
 		read_temperature();
-=======
+#endif
+
 #ifdef encoder
 		lecture_encoder = eqep.get_position(false);
 		printf("Vitesse mesurée = %d ",lecture_encoder);
@@ -133,9 +153,9 @@ void *primary_thread(void *incoming_args)
 
 		vitesse_locale = vitesse;
 		vitesse_locale = apply_mod(vitesse_locale,&incomming_speed_modifier);
-		printf("Vitesse reçu = %f ",vitesse_locale);
+	//	printf("Vitesse reçu = %f ",vitesse_locale);
 
->>>>>>> 95eba6b3933cc6a8bc8518e87bcd9f010d498891
+
 #ifdef sensor_distance
 		distance_sensor_filter[0]=read_distance();
 		distance_read_in_cm = filter_shifter(distance_sensor_filter,NUMBER_OF_DISTANCE_ELEMENTS);
@@ -167,8 +187,8 @@ void *primary_thread(void *incoming_args)
 
 
 		duty_ms = filter_shifter(filter,NUMBER_OF_FILTER_ELEMENTS);
-		printf("Direction = %d  ",direction);
-		printf("Duty cycle : %f\n",duty_ms);
+		/*printf("Direction = %d  ",direction);
+		printf("Duty cycle : %f\n",duty_ms);*/
 		update_pwm(period_ms,duty_ms);
 
 		push_button_state = read_gpio60_P9_12();

@@ -14,6 +14,9 @@
 #define exp	M_E
 #define critical_distance 100
 
+
+
+
 double speed_regulator(double speed,double distance)
 {
 	double return_speed =0;
@@ -47,6 +50,7 @@ void init_peripherals(void)
 	start_pwm();
 	setup_motor_direction_pin();
 	lm74_init();
+	init_encoder();
 #ifdef sensor_distance
 	init_hcsr04();
 #endif

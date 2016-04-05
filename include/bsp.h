@@ -12,7 +12,8 @@
 #include <string>
 #include "eqep.h"
 #include "hcsr04.h"
-#include "lm74_drv.h";
+#include "lm74_drv.h"
+#include "encoder_pru_drv.h"
 
 #define MS_TO_NS_FACTOR					1000000
 #define MOTOR_STARTING_PULSE_IN_MS		0.1/1000
@@ -36,11 +37,13 @@
 #define A1								0
 #define A2								2585
 
+//#define temperature_sens
 //#define sensor_distance
 //#define test_adc_speed
+#define encoder_pru
 #define change_direction_with_push_button
 //#define encoder
-#define comm
+//#define comm
 
 struct curve_args
 {

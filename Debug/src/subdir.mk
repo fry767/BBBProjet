@@ -9,6 +9,7 @@ C_SRCS += \
 CPP_SRCS += \
 ../src/TestArm.cpp \
 ../src/bsp.cpp \
+../src/encoder_pru_drv.cpp \
 ../src/eqep.cpp \
 ../src/hcsr04.cpp \
 ../src/lm74_drv.cpp 
@@ -17,6 +18,7 @@ OBJS += \
 ./src/TestArm.o \
 ./src/baborwire.o \
 ./src/bsp.o \
+./src/encoder_pru_drv.o \
 ./src/eqep.o \
 ./src/hcsr04.o \
 ./src/lm74_drv.o 
@@ -27,6 +29,7 @@ C_DEPS += \
 CPP_DEPS += \
 ./src/TestArm.d \
 ./src/bsp.d \
+./src/encoder_pru_drv.d \
 ./src/eqep.d \
 ./src/hcsr04.d \
 ./src/lm74_drv.d 
