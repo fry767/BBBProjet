@@ -12,8 +12,12 @@
 #include "lm74_drv.h"
 #include "encoder_pru_drv.h"
 using namespace std;
+
+#define BATTERY_MAX_TEMP 140
+
 void *primary_thread(void *incoming_args);
 double apply_mod(double value,curve_args *mod);
+bool battery_is_in_overtemperature(double current_temperature);
 struct args_struct
 {
 	void* dumss;
@@ -89,6 +93,7 @@ void *primary_thread(void *incoming_args)
 
 	bool push_button_state=0;
 	bool direction =0;
+	bool error_overtemperature =0;
 
 	init_peripherals();
 
@@ -139,50 +144,67 @@ void *primary_thread(void *incoming_args)
 
 	while(1)
 	{
+#ifdef temperature_sens
+		if(battery_is_in_overtemperature(read_temperature()))
+		{
+			error_overtemperature = 1;
+		}
+#endif
+#ifdef sensor_distance
+		distance_sensor_filter[0]=read_distance();
+		distance_read_in_cm = filter_shifter(distance_sensor_filter,NUMBER_OF_DISTANCE_ELEMENTS);
+		printf("Prochain objet = %f cm \n   ",distance_read_in_cm);
+#endif
+
 #ifdef encoder_pru
 		linear_speed_filter[0] = read_linear_speed();
 		vitesse_mesure = filter_shifter(linear_speed_filter,NUMBER_OF_DISTANCE_ELEMENTS);
 		printf("Vitesse mesurée = %f \n",vitesse_mesure);
 #endif
-#ifdef temperature_sens
-		read_temperature();
-#endif
+
 
 #ifdef encoder
 		lecture_encoder = eqep.get_position(false);
 		printf("Vitesse mesurée = %d ",lecture_encoder);
 #endif
 
-		vitesse_locale = vitesse;
-		vitesse_locale = apply_mod(vitesse_locale,&incomming_speed_modifier);
-	//	printf("Vitesse reçu = %f ",vitesse_locale);
+		if(!error_overtemperature)
+		{
+			vitesse_locale = vitesse;
+			vitesse_locale = apply_mod(vitesse_locale,&incomming_speed_modifier);
+		}
+		else
+		{
+			//Permettra de fixé la vitesse peut importe la vitesse regler par l'utilisateur
+			//Plus le chariot sera proche du mur, plus la vitesse sera réguler par la fonction
+			//speed_regulator
+			vitesse_locale = 200;
+			vitesse_locale = apply_mod(vitesse_locale,&incomming_speed_modifier);
+		}
 
 
-#ifdef sensor_distance
-		distance_sensor_filter[0]=read_distance();
-		distance_read_in_cm = filter_shifter(distance_sensor_filter,NUMBER_OF_DISTANCE_ELEMENTS);
-		printf("Prochain objet = %f cm   ",distance_read_in_cm);
-#endif
+
+
+
 
 #ifdef test_adc_speed
 		vitesse_locale = read_adc();
 		vitesse_locale = apply_mod(vitesse_locale,&test_adc_speed_modifier);
-		/*vitesse_locale *= test_adc_speed_modifier.slope;
 
-		vitesse_locale += test_adc_speed_modifier.origin;*/
 #endif
 
+		//Regule la vitesse en fonction de la distance par rapport au mur/obstacle
 		vitesse_locale = speed_regulator(vitesse_locale,distance_read_in_cm);
 		direction = 0;
 		if(vitesse_locale < 0)
 		{
 			vitesse_locale = -vitesse_locale;
 			direction = 1;
+
 		}
 		duty_ms = vitesse_locale;
 		duty_ms = apply_mod(duty_ms,&curve_param);
-		/*duty_ms *= curve_param.slope;
-		duty_ms += curve_param.origin;*/
+
 
 
 		filter[0]=duty_ms;
@@ -213,4 +235,11 @@ double apply_mod(double value,curve_args *mod)
 	value += mod->origin;
 	return value;
 
+}
+bool battery_is_in_overtemperature(double current_temperature)
+{
+	if(current_temperature > BATTERY_MAX_TEMP)
+		return 1;
+	else
+		return 0;
 }

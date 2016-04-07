@@ -33,6 +33,7 @@ double read_distance(void)
 	void *pruDataMem;
 	prussdrv_map_prumem (PRUSS0_PRU0_DATARAM, &pruDataMem);
 	unsigned int *pruData = (unsigned int *) pruDataMem;
+	double reel_distance =0;
 #ifdef HCSR04_DEBUG
 	/* Execute example on PRU */
 	printf("Executing sonar pru code\n");
@@ -61,7 +62,9 @@ double read_distance(void)
 	/* Disable PRU and close memory mapping*/
 	//prussdrv_pru_disable (0);
 	//prussdrv_exit ();
-	return ((double) pruData[1] / 58.77);
+	reel_distance = (double) pruData[1];
+	reel_distance *=0.79;
+	return (reel_distance / 58.77);
 
 }
 
