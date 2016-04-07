@@ -68,7 +68,10 @@ double read_linear_speed(void)
 		//Print out the distance received from the sonar (sound takes 58.77 microseconds to travel 1 cm at sea level in dry air)
 	//	printf("Distance = %f cm\n", (float) pruData[1] / 58.77);
 	//}
+
 		vitesse = convert_angular_to_linear_speed(RADIUS_OF_ENCODER_IN_MM,pruData[1]);
+		//A confirmer pour voir si le fix du capteur de distance est pareil pour l'encoder
+		vitesse *= 0.79;
 #ifdef ENCODER_DEBUG
 
 	/* Check if example passed */
