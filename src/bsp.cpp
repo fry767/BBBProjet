@@ -50,9 +50,9 @@ void init_peripherals(void)
 	start_pwm();
 	setup_motor_direction_pin();
 	lm74_init();
-	init_encoder();
+	//init_encoder();
 #ifdef sensor_distance
-	init_hcsr04();
+	//init_hcsr04();
 #endif
 }
 void setup_motor_direction_pin(void)

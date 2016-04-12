@@ -153,15 +153,15 @@ void *primary_thread(void *incoming_args)
 #ifdef sensor_distance
 		distance_sensor_filter[0]=read_distance();
 		distance_read_in_cm = filter_shifter(distance_sensor_filter,NUMBER_OF_DISTANCE_ELEMENTS);
-		printf("Prochain objet = %f cm \n   ",distance_read_in_cm);
-#endif
 
+#endif
+		printf("Prochain objet = %f cm    ",distance_read_in_cm);
 #ifdef encoder_pru
 		linear_speed_filter[0] = read_linear_speed();
 		vitesse_mesure = filter_shifter(linear_speed_filter,NUMBER_OF_DISTANCE_ELEMENTS);
-		printf("Vitesse mesurée = %f \n",vitesse_mesure);
-#endif
 
+#endif
+		printf("Vitesse mesurée = %f \n",vitesse_mesure);
 
 #ifdef encoder
 		lecture_encoder = eqep.get_position(false);

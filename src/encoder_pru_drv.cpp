@@ -7,7 +7,7 @@
 #include <math.h>
 
 //#define ENCODER_DEBUG
-#define RADIUS_OF_ENCODER_IN_MM	7
+#define RADIUS_OF_ENCODER_IN_MM	26
 double convert_angular_to_linear_speed(double radius_in_millimeter,double time_in_us)
 {
 	double linear_speed = 0;
@@ -43,6 +43,7 @@ void init_encoder(void)
 
 double read_linear_speed(void)
 {
+	init_encoder();
 	/* Get pointers to PRU local memory */
 	void *pruDataMem;
 	double vitesse = 0;
@@ -58,20 +59,13 @@ double read_linear_speed(void)
 	printf("Waiting to get the interrupt\n");
 #endif
 
-	int incrementation =0;
-	//while(incrementation++<10)
-	//{
-		// Wait for the PRU interrupt to occur
-		prussdrv_pru_wait_event (PRU_EVTOUT_1);
-		prussdrv_pru_clear_event (PRU_EVTOUT_1,PRU1_ARM_INTERRUPT);
-	//for(double i =0;i<60001;i++){}
-		//Print out the distance received from the sonar (sound takes 58.77 microseconds to travel 1 cm at sea level in dry air)
-	//	printf("Distance = %f cm\n", (float) pruData[1] / 58.77);
-	//}
+	// Wait for the PRU interrupt to occur
+	prussdrv_pru_wait_event (PRU_EVTOUT_1);
+	prussdrv_pru_clear_event (PRU_EVTOUT_1,PRU1_ARM_INTERRUPT);
+	//pruData[1] *= 0.79;
+	vitesse = (double) pruData[1];
+	//vitesse = convert_angular_to_linear_speed(RADIUS_OF_ENCODER_IN_MM,(double)pruData[1]);
 
-		vitesse = convert_angular_to_linear_speed(RADIUS_OF_ENCODER_IN_MM,pruData[1]);
-		//A confirmer pour voir si le fix du capteur de distance est pareil pour l'encoder
-		vitesse *= 0.79;
 #ifdef ENCODER_DEBUG
 
 	/* Check if example passed */
@@ -82,7 +76,7 @@ double read_linear_speed(void)
 
 
 	/* Disable PRU and close memory mapping*/
-	//prussdrv_pru_disable (0);
+	prussdrv_pru_disable (1);
 	//prussdrv_exit ();
 	return ((double) vitesse);
 

@@ -29,6 +29,7 @@ void init_hcsr04(void)
 }
 double read_distance(void)
 {
+	init_hcsr04();
 	/* Get pointers to PRU local memory */
 	void *pruDataMem;
 	prussdrv_map_prumem (PRUSS0_PRU0_DATARAM, &pruDataMem);
@@ -60,7 +61,7 @@ double read_distance(void)
 	printf("Executed succesfully.\r\n");
 #endif
 	/* Disable PRU and close memory mapping*/
-	//prussdrv_pru_disable (0);
+	prussdrv_pru_disable (0);
 	//prussdrv_exit ();
 	reel_distance = (double) pruData[1];
 	reel_distance *=0.79;
