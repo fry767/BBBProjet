@@ -12,8 +12,10 @@
 #include <pthread.h>
 #include "../include/baborwire.h"
 
-#define PORT_NUM_APP    9202
-#define SERV_IP_ADDR    "192.168.49.33"
+#define PORT_NUM_APP    31337
+//9202
+//#define SERV_IP_ADDR    "192.168.49.33"
+#define SERV_IP_ADDR    "10.0.1.25"
 #define RX_BUF_SIZE     7
 
 #define DEBUG			1
@@ -32,7 +34,7 @@ do  { \
 	} while (0)
 
 
-extern uint32_t vitesse;
+extern int32_t vitesse;
 int delay_ms(long ms)
 {
     time_t s;

@@ -55,7 +55,7 @@ clean:
 	-@echo ' '
 
 post-build:
-	-scp TestArm root@192.168.7.2:/home/BBBTest
+	-scp TestArm root@192.168.7.2:/root/BBBTest
 	-@echo ' '
 
 .PHONY: all clean dependents

@@ -17,6 +17,9 @@
 static const char *device = "/dev/spidev1.0";
 unsigned char tx[2],rx[2];
 
+/*
+ * Fonction qui permet d'initialiser le capteur de température
+ */
 void lm74_init(void)
 {
 	uint8_t mode = 3, bits = 8;
@@ -65,6 +68,14 @@ void lm74_init(void)
 	printf("max speed: %d Hz (%d KHz)\n", speed, speed/1000);
 	close(file);
 }
+/*
+ * Fonction qui permet de lire la température de la batterie
+ *
+ * Paramètre : aucun
+ *
+ * Valeur retournée : Température de la batterie en degré celcius
+ *
+ */
 double read_temperature(void)
 {
 	int file;

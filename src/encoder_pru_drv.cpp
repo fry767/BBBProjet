@@ -6,8 +6,21 @@
 #include <pruss_intc_mapping.h>
 #include <math.h>
 
-//#define ENCODER_DEBUG
+#define ENCODER_DEBUG
+
 #define RADIUS_OF_ENCODER_IN_MM	26
+
+/*
+ * Fonction permettant de convertir la vitesse angulaire lu
+ * par l'encodeur en vitesse linéaire
+ *
+ * Paramètre :
+ * radius_in_millimeter : rayon de la roue de l'encodeur en millimètres
+ * time_in_us : Temps requis pour faire un tour de roue
+ *
+ * Valeur retournée : la vitesse linéaire
+ *
+ */
 double convert_angular_to_linear_speed(double radius_in_millimeter,double time_in_us)
 {
 	double linear_speed = 0;
@@ -16,6 +29,10 @@ double convert_angular_to_linear_speed(double radius_in_millimeter,double time_i
 	return linear_speed;
 
 }
+
+/*
+ * Fonction qui initialise l'encodeur
+ */
 void init_encoder(void)
 {
 	/* Initialize the PRU */
@@ -40,7 +57,15 @@ void init_encoder(void)
 #endif
 
 }
-
+/*
+ * Fonction qui retourne une vitesse linéaire selon
+ * la lecture de l'encodeur
+ *
+ * Paramètre : aucun
+ *
+ * Valeur retournée : la vitesse linéaire
+ *
+ */
 double read_linear_speed(void)
 {
 	init_encoder();
@@ -62,9 +87,9 @@ double read_linear_speed(void)
 	// Wait for the PRU interrupt to occur
 	prussdrv_pru_wait_event (PRU_EVTOUT_1);
 	prussdrv_pru_clear_event (PRU_EVTOUT_1,PRU1_ARM_INTERRUPT);
-	//pruData[1] *= 0.79;
+
 	vitesse = (double) pruData[1];
-	//vitesse = convert_angular_to_linear_speed(RADIUS_OF_ENCODER_IN_MM,(double)pruData[1]);
+	vitesse = convert_angular_to_linear_speed(RADIUS_OF_ENCODER_IN_MM,(double)pruData[1]);
 
 #ifdef ENCODER_DEBUG
 

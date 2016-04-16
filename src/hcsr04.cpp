@@ -3,6 +3,10 @@
 #include <hcsr04.h>
 
 //#define HCSR04_DEBUG
+/*
+ * Fonction qui initialise le capteur de distance
+ *
+ */
 void init_hcsr04(void)
 {
 	/* Initialize the PRU */
@@ -27,6 +31,14 @@ void init_hcsr04(void)
 #endif
 
 }
+/*
+ * Fonction qui lit la distance du prochain obstacle en cm
+ *
+ * Paramètre : aucun
+ *
+ * Valeur retournée : La distance du prochain obstacle en cm
+ *
+ */
 double read_distance(void)
 {
 	init_hcsr04();
@@ -46,15 +58,17 @@ double read_distance(void)
 #endif
 
 	int incrementation =0;
-	//while(incrementation++<10)
-	//{
+
 		// Wait for the PRU interrupt to occur
 		prussdrv_pru_wait_event (PRU_EVTOUT_0);
 		prussdrv_pru_clear_event (PRU_EVTOUT_0,PRU0_ARM_INTERRUPT);
-	//for(double i =0;i<60001;i++){}
+
+#ifdef HCSR04_DEBUG
 		//Print out the distance received from the sonar (sound takes 58.77 microseconds to travel 1 cm at sea level in dry air)
-	//	printf("Distance = %f cm\n", (float) pruData[1] / 58.77);
-	//}
+		printf("Distance = %f cm\n", (float) pruData[1] / 58.77);
+#endif
+
+
 #ifdef HCSR04_DEBUG
 
 	/* Check if example passed */

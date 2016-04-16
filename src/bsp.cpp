@@ -7,16 +7,32 @@
  */
 #include "bsp.h"
 #include <math.h>
+
+/*
+ * Parametre pour une fonction exponentielle qui nous
+ * permet de réguler la vitesse.
+ */
 #define a	-3.164
 #define b	-0.0273
 #define h 	-146.2
 #define k	111
+
+//Le nombre e en mathématique (2.71828)
 #define exp	M_E
+
+//Distance critique en cm où nous commençons à réguler la vitesse
 #define critical_distance 100
 
-
-
-
+/* Fonction qui nous permet de réguler la vitesse du chariot
+ * en fonction de la distance d'un prochain obstacle lu par
+ * le capteur de distance.
+ *
+ * Paramètre :
+ * speed : vitesse du chariot commandé par l'utilisateur
+ * distance : distance lu par le capteur de distance
+ *
+ * Valeur retournée : vitesse régulé en fonction de la distance
+ * */
 double speed_regulator(double speed,double distance)
 {
 	double return_speed =0;
@@ -43,20 +59,33 @@ double speed_regulator(double speed,double distance)
 
 
 }
+/*
+ * Fonction qui initialise le pwm, la direction du moteur
+ * ainsi que le capteur de température.
+ */
 void init_peripherals(void)
 {
-	//SCRIPT d'initialisation du PWM ainsi que de l'adc
-	system("bash init.sh");
+
+
+	//Démarrage du module qui génère le pwm pour le moteur
 	start_pwm();
+
+	//Configuration de la pin qui controlera la direction du moteur
 	setup_motor_direction_pin();
+
+	//Initialisation du capteur de température
 	lm74_init();
-	//init_encoder();
-#ifdef sensor_distance
-	//init_hcsr04();
-#endif
+
+
+
 }
+/*
+ * Fonction qui configure le contrôle de la
+ * direction du moteur
+ */
 void setup_motor_direction_pin(void)
 {
+
 	char* gpio48_loc = "/sys/class/gpio/gpio48/direction";
 	FILE *motorDirectionHandler = NULL;
 	motorDirectionHandler = fopen(gpio48_loc,"r+");
@@ -64,6 +93,9 @@ void setup_motor_direction_pin(void)
 	fclose(motorDirectionHandler);
 
 }
+/* Fonction qui permet de contrôler la direction
+ * du moteur
+ */
 void set_motor_direction(bool sens)
 {
 	char* gpio48_value = "/sys/class/gpio/gpio48/value";
@@ -75,19 +107,34 @@ void set_motor_direction(bool sens)
 		fwrite("0",sizeof(char),1,motorDirectionHandler);
 	fclose(motorDirectionHandler);
 }
+
+/*
+ * Fonction qui démarre le module qui génère le pwm
+ * à l'intérieur du Beaglebone
+ *
+ */
 void start_pwm(void)
 {
 	FILE *pwmHandle = NULL;
+	char *pwm_export  = &(std::string(getenv("MOTORPATH"))+std::string("/export"))[0u];
+	pwmHandle = fopen(pwm_export,"w");
+	fwrite("0",sizeof(char),1,pwmHandle);
+	fclose(pwmHandle);
+
 	char *pwm_enable  = &(std::string(getenv("MOTORPATH"))+std::string("/pwm0/enable"))[0u];
-	pwmHandle = fopen(pwm_enable,"r+");
+	pwmHandle = fopen(pwm_enable,"w");
 	fwrite("1",sizeof(char),1,pwmHandle);
 	fclose(pwmHandle);
 }
+/*
+ * Fonction qui arrète le module qui génère le pwm
+ * à l'intérieur du beaglebone
+ */
 void stop_pwm(void)
 {
 	FILE *pwmHandle = NULL;
 	char *pwm_enable  = &(std::string(getenv("MOTORPATH"))+std::string("/pwm0/enable"))[0u];
-	pwmHandle = fopen(pwm_enable,"r+");
+	pwmHandle = fopen(pwm_enable,"w");
 	fwrite("0",sizeof(char),1,pwmHandle);
 	fclose(pwmHandle);
 
@@ -95,6 +142,15 @@ void stop_pwm(void)
 	prussdrv_exit ();
 
 }
+/*
+ * Fonction qui permet de changer la valeur du rapport
+ * cycle du pwm.
+ *
+ * Paramètre :
+ * duty_in_ms : Le nouveau rapport cyclique du pwm en millisecondes.
+ *
+ * Valeur retournée : aucune
+ */
 void update_pwm_duty_cycle(double duty_in_ms)
 {
 	FILE *pwmHandle = NULL;
@@ -116,6 +172,15 @@ void update_pwm_duty_cycle(double duty_in_ms)
 
 
 }
+/*
+ * Fonction qui permet de changer la valeur de la peéiode
+ * du pwm.
+ *
+ * Paramètre :
+ * period_in_ms : La nouvelle période du pwm en millisecondes.
+ *
+ * Valeur retournée : aucune
+ */
 void update_pwm_period_cycle(double period_in_ms)
 {
 	FILE *pwmHandle = NULL;
@@ -127,11 +192,22 @@ void update_pwm_period_cycle(double period_in_ms)
 
 	pwmHandle = fopen(pwmPeriod_ns,"r+");
 
-	number_of_bytes_to_write = sprintf(str,"%lf",dummy);
+	number_of_bytes_to_write = sprintf(str,"%.0lf",dummy);
 	fwrite(str,sizeof(char),number_of_bytes_to_write,pwmHandle);
 	fclose(pwmHandle);
 
 }
+/*
+ * Fonction qui permet de changer la période ainsi
+ * que le rapport cyclique du pwm.
+ *
+ * Paramètre :
+ * period_in_ms : La nouvelle période du pwm en millisecondes.
+ * duty_in_ms : Le nouveau rapport cyclique du pwm en millisecondes.
+ *
+ * Valeur retournée : aucune
+ *
+ */
 void update_pwm(double period_in_ms,double duty_in_ms)
 {
 
@@ -140,6 +216,16 @@ void update_pwm(double period_in_ms,double duty_in_ms)
 		update_pwm_duty_cycle(duty_in_ms);
 		//start_pwm();
 }
+
+/*
+ * Fonction qui permet de lire la valeur 12 bits
+ * lu sur le module ADC numéro 0 du Beaglebone
+ *
+ * Paramètre : aucun
+ *
+ * Valeur retournée : Valeur lu sur le ACD sur 12 bits
+ *
+ */
 double read_adc(void)
 {
 	FILE *adcHandler;
@@ -152,7 +238,7 @@ double read_adc(void)
 	adcHandler = fopen(adc0_loc,"r");
 	if(adcHandler == NULL)
 	{
-		//fputs("ADC0 not found get rekt",stderr);
+		//fputs("ADC0 not found ",stderr);
 		//exit(1);
 	}
 	fseek(adcHandler,0,SEEK_END);
@@ -167,15 +253,20 @@ double read_adc(void)
 	}
 	result = fread(buffer,1,lSize,adcHandler);
 	double value = atoi(buffer);
-//	fputs(buffer,stdout);
+
 	fclose(adcHandler);
 	free(buffer);
+
 	return value ;
 }
-void set_adc(void)
-{
-
-}
+/*
+ * Fonction permettant de lire l'état de la pin
+ * P9_12 sur le Beaglebone
+ *
+ * Paramètre : aucun
+ *
+ * Valeur retourné : État de la pin (1 ou 0)
+ */
 bool read_gpio60_P9_12(void)
 {
 	FILE *gpioHandler;
@@ -198,11 +289,24 @@ bool read_gpio60_P9_12(void)
 	}
 	result = fread(buffer,1,lSize,gpioHandler);
 	int value = atoi(buffer);
-	//fputs(buffer,stdout);
 	fclose(gpioHandler);
 	free(buffer);
 	return value ;
 }
+/*
+ * Fonction qui crée une fonction de premier degré à l'aide de
+ * deux points (x1,y1) , (x2,y2)
+ *
+ * Paramètre :
+ * y1 : Coordonée y du premier point
+ * y2 : Coordonée y du deuxième point
+ * x1 : Coordonée x du premier point
+ * x2 : Coordonée x du deuxième point
+ * parameter : structure dans lequel la pente ainsi que l'origine
+ * de la fonction seront accessible.
+ *
+ * Valeur retourné : aucune
+ */
 void slope_maker(double y1 , double y2 , double x1, double x2,curve_args* parameter)
 {
 
@@ -211,6 +315,19 @@ void slope_maker(double y1 , double y2 , double x1, double x2,curve_args* parame
 
 
 }
+/*
+ * Fonction qui permet de remplir un filtre numérique
+ * pour la première fois
+ *
+ * Paramètre :
+ * table : tableau contenant les valeurs échantillonées
+ * parameter : structure qui contient les modifications à faire sur les valeurs
+ * fill : fonction à utiliser pour remplir le tableau
+ * nb_element : nb d'éléments à échantillonées
+ *
+ * Valeur retourné : aucune
+ *
+ */
 void first_time_fill_filter(double *table,curve_args* parameter,fill_filter_fct fill,double nb_element)
 {
 	for(int i = 0;i < nb_element; i++)
@@ -221,6 +338,17 @@ void first_time_fill_filter(double *table,curve_args* parameter,fill_filter_fct 
 		table[i] += parameter->origin;
 	}
 }
+
+/*
+ * Fonction qui permet de décaler tous les éléments d'un
+ * filtre numérique et qui retourne la valeur filtrée
+ *
+ * Parametre :
+ * table : tableau contenant les valeurs échantillonées
+ * nb_element : nb d'éléments échantillonées
+ *
+ * Valeur retournée : valeur filtrée
+ */
 double filter_shifter(double table[],double nb_element)
 {
 	double sum = 0;

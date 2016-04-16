@@ -38,12 +38,12 @@
 #define A2								2585
 
 //#define temperature_sens
-#define sensor_distance
+//#define sensor_distance
 //#define test_adc_speed
 #define encoder_pru
 #define change_direction_with_push_button
 //#define encoder
-//#define comm
+#define comm
 
 struct curve_args
 {

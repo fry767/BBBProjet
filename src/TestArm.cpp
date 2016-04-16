@@ -29,7 +29,7 @@ struct shared_data
 	float speed;
 
 };
-uint32_t vitesse = 100;
+int32_t vitesse = 0;
 
 
 int main()
@@ -77,7 +77,7 @@ void *primary_thread(void *incoming_args)
 	curve_param.slope =0;
 	curve_param.origin =0;
 
-	incomming_speed_modifier.slope = 0;
+	incomming_speed_modifier.slope = 1;
 	incomming_speed_modifier.origin= 0;
 
 
@@ -100,30 +100,9 @@ void *primary_thread(void *incoming_args)
 	update_pwm(period_ms,duty_ms);
 
 	slope_maker(Y1,Y2,X1,X2,&curve_param);
-	slope_maker(V1,V2,incomming_v1,incomming_v2,&incomming_speed_modifier);
+	//slope_maker(V1,V2,incomming_v1,incomming_v2,&incomming_speed_modifier);
 
 	//Initialisation du module hardware pour compter les tours de l'encodeur
-#ifdef encoder
-	int32_t lecture_encoder=0;
-	eQEP eqep(eQEP0,eQEP::eQEP_Mode_Relative);
-
-	//Configuration de la vitesse d'échantillonage
-	eqep.set_period(POLLING_SPEED_IN_MS * MS_TO_NS_FACTOR);
-#endif
-
-
-
-
-#ifdef test_adc_speed
-	double test_adc_speed_table[NUMBER_OF_FILTER_ELEMENTS];
-	curve_args test_adc_speed_modifier;
-	test_adc_speed_modifier.slope=0;
-	test_adc_speed_modifier.origin=0;
-	slope_maker(V1,V2,A1,A2,&test_adc_speed_modifier);
-	first_time_fill_filter(test_adc_speed_table,&test_adc_speed_modifier,read_adc,NUMBER_OF_FILTER_ELEMENTS);
-#endif
-
-
 
 
 #ifdef sensor_distance
@@ -153,20 +132,17 @@ void *primary_thread(void *incoming_args)
 #ifdef sensor_distance
 		distance_sensor_filter[0]=read_distance();
 		distance_read_in_cm = filter_shifter(distance_sensor_filter,NUMBER_OF_DISTANCE_ELEMENTS);
+		printf("Prochain objet = %f cm    ",distance_read_in_cm);
 
 #endif
-		printf("Prochain objet = %f cm    ",distance_read_in_cm);
+
 #ifdef encoder_pru
 		linear_speed_filter[0] = read_linear_speed();
 		vitesse_mesure = filter_shifter(linear_speed_filter,NUMBER_OF_DISTANCE_ELEMENTS);
-
-#endif
 		printf("Vitesse mesurée = %f \n",vitesse_mesure);
-
-#ifdef encoder
-		lecture_encoder = eqep.get_position(false);
-		printf("Vitesse mesurée = %d ",lecture_encoder);
 #endif
+
+
 
 		if(!error_overtemperature)
 		{
@@ -184,15 +160,6 @@ void *primary_thread(void *incoming_args)
 
 
 
-
-
-
-#ifdef test_adc_speed
-		vitesse_locale = read_adc();
-		vitesse_locale = apply_mod(vitesse_locale,&test_adc_speed_modifier);
-
-#endif
-
 		//Regule la vitesse en fonction de la distance par rapport au mur/obstacle
 		vitesse_locale = speed_regulator(vitesse_locale,distance_read_in_cm);
 		direction = 0;
@@ -202,9 +169,9 @@ void *primary_thread(void *incoming_args)
 			direction = 1;
 
 		}
+		set_motor_direction(direction);
 		duty_ms = vitesse_locale;
 		duty_ms = apply_mod(duty_ms,&curve_param);
-
 
 
 		filter[0]=duty_ms;
@@ -214,15 +181,6 @@ void *primary_thread(void *incoming_args)
 		/*printf("Direction = %d  ",direction);
 		printf("Duty cycle : %f\n",duty_ms);*/
 		update_pwm(period_ms,duty_ms);
-
-		push_button_state = read_gpio60_P9_12();
-#ifdef change_direction_with_push_button
-		if(push_button_state)
-		{
-			direction = !direction;
-			set_motor_direction(direction);
-		}
-#endif
 
 	}
 
